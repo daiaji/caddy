@@ -6,42 +6,31 @@ FROM alpine AS builder
 
 ARG plugins="http.cache,http.filter,http.webdav,tls.dns.cloudflare"
 
-RUN apk update \
+RUN sed -i 's#http://dl-cdn.alpinelinux.org#http://mirrors.aliyun.com#g' /etc/apk/repositories \
+    && apk update \
     && apk add --no-cache bash ca-certificates gzip curl \
     && curl https://getcaddy.com | bash -s personal ${plugins}
 
 #
 # Final stage
 #
-FROM alpine
+
+FROM scratch
 LABEL maintainer "Abiola Ibrahim <abiola89@gmail.com>"
 
 # Let's Encrypt Agreement
 ENV ACME_AGREE="false"
 
-RUN apk update \
-    && apk add --no-cache \
-    ca-certificates \
-    git \
-    mailcap \
-    openssh-client \
-    tzdata \
-    libcap
-
 # install caddy
 COPY --from=builder /usr/local/bin/caddy /usr/bin/caddy
 
 # validate install
-RUN /usr/bin/caddy -version
-RUN /usr/bin/caddy -plugins
+#RUN /usr/bin/caddy -version
+#RUN /usr/bin/caddy -plugins
 
 EXPOSE 80 443 2015
-RUN setcap 'cap_net_bind_service=+ep' /usr/bin/caddy
-#VOLUME /root/.caddy /srv
-#WORKDIR /caddy/www
 
 COPY Caddyfile /etc/Caddyfile
-
 
 ENTRYPOINT ["caddy"]
 CMD ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree=true", "-quic"]
