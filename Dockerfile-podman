@@ -22,6 +22,7 @@ ENV ACME_AGREE="false"
 
 # install caddy
 COPY --from=builder /usr/local/bin/caddy /usr/bin/caddy
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 # validate install
 #RUN /usr/bin/caddy -version
@@ -29,7 +30,6 @@ COPY --from=builder /usr/local/bin/caddy /usr/bin/caddy
 
 EXPOSE 80 443 2015
 
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY Caddyfile /etc/Caddyfile
 
 ENTRYPOINT ["caddy"]
