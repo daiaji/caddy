@@ -29,6 +29,7 @@ COPY --from=builder /usr/local/bin/caddy /usr/bin/caddy
 
 EXPOSE 80 443 2015
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY Caddyfile /etc/Caddyfile
 
 ENTRYPOINT ["caddy"]
