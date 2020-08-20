@@ -35,6 +35,5 @@ RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
 
 EXPOSE 80 443 2019
 
-COPY Caddyfile /etc/Caddyfile
-
 ENTRYPOINT ["caddy"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
