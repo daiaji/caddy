@@ -9,8 +9,8 @@ RUN set -eux; \
 		/etc/caddy \
 		/usr/share/caddy \
 	; \
-	wget -O /etc/caddy/Caddyfile "https://raw.githubusercontent.com/caddyserver/dist/master/config/Caddyfile"; \
-	wget -O /usr/share/caddy/index.html "https://raw.githubusercontent.com/caddyserver/dist/master/welcome/index.html"
+	curl -fsSLo /etc/caddy/Caddyfile "https://raw.githubusercontent.com/caddyserver/dist/master/config/Caddyfile"; \
+	curl -fsSLo /usr/share/caddy/index.html "https://raw.githubusercontent.com/caddyserver/dist/master/welcome/index.html"
 
 
 RUN set -eux; \
@@ -24,7 +24,7 @@ RUN set -eux; \
 		s390x)   binArch='s390x' ;; \
 		*) echo >&2 "error: unsupported architecture ($apkArch)"; exit 1 ;;\
 	esac; \
-	wget -O /usr/bin/caddy "https://caddyserver.com/api/download?os=linux&arch=${binArch}&p=github.com%2Fcaddyserver%2Freplace-response&p=github.com%2Fcaddy-dns%2Fcloudflare&p=github.com%2Fmholt%2Fcaddy-webdav"; \
+	curl -fsSLo /usr/bin/caddy "https://caddyserver.com/api/download?os=linux&arch=${binArch}&p=github.com%2Fcaddyserver%2Freplace-response&p=github.com%2Fcaddy-dns%2Fcloudflare&p=github.com%2Fmholt%2Fcaddy-webdav"; \
 	chmod +x /usr/bin/caddy; \
 	caddy version; \
 	caddy list-modules
@@ -33,11 +33,10 @@ RUN set -eux; \
 # - https://github.com/docker-library/golang/blob/1eb096131592bcbc90aa3b97471811c798a93573/1.14/alpine3.12/Dockerfile#L9
 RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
 
-# See https://caddyserver.com/docs/conventions#file-locations for details
-ENV XDG_CONFIG_HOME=/config
-ENV XDG_DATA_HOME=/data
+HEALTHCHECK --start-period=2s --interval=5s --timeout=3s \
+  CMD curl -f http://localhost/health || exit 1
 
 EXPOSE 80 443 2019
 
 ENTRYPOINT ["caddy"]
-CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+CMD ["run", "--config", "/root/.config/caddy/Caddyfile", "--adapter", "caddyfile"]
