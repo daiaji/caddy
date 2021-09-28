@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk update && apk add --no-cache ca-certificates
+RUN apk update && apk add --no-cache ca-certificates curl
 
 RUN set -eux; \
 	mkdir -p \
