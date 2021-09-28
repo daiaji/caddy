@@ -1,11 +1,9 @@
 FROM alpine
 
-RUN apk update && apk add --no-cache ca-certificates curl
+RUN apk --update add --no-cache ca-certificates curl
 
 RUN set -eux; \
 	mkdir -p \
-		/config/caddy \
-		/data/caddy \
 		/etc/caddy \
 		/usr/share/caddy \
 	; \

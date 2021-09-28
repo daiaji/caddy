@@ -6,8 +6,7 @@ FROM alpine AS builder
 
 ARG plugins="http.cache,http.filter,http.webdav,tls.dns.cloudflare"
 
-RUN apk update \
-    && apk add --no-cache bash ca-certificates gzip curl \
+RUN apk --update add --no-cache bash ca-certificates gzip curl \
     && curl https://getcaddy.com | bash -s personal ${plugins}
 
 #
@@ -19,8 +18,7 @@ LABEL maintainer "Abiola Ibrahim <abiola89@gmail.com>"
 # Let's Encrypt Agreement
 ENV ACME_AGREE="false"
 
-RUN apk update \
-    && apk add --no-cache \
+RUN apk --update add --no-cache \
     ca-certificates \
     git \
     mailcap \
