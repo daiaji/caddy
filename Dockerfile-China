@@ -14,33 +14,21 @@ RUN sed -i 's#http://dl-cdn.alpinelinux.org#http://mirrors.aliyun.com#g' /etc/ap
 #
 # Final stage
 #
-FROM alpine
+
+FROM scratch
 LABEL maintainer "Abiola Ibrahim <abiola89@gmail.com>"
 
 # Let's Encrypt Agreement
 ENV ACME_AGREE="false"
 
-RUN sed -i 's#http://dl-cdn.alpinelinux.org#http://mirrors.aliyun.com#g' /etc/apk/repositories \
-    && apk update \
-    && apk add --no-cache \
-    ca-certificates \
-    git \
-    mailcap \
-    openssh-client \
-    tzdata \
-    libcap
-
 # install caddy
 COPY --from=builder /usr/local/bin/caddy /usr/bin/caddy
 
 # validate install
-RUN /usr/bin/caddy -version
-RUN /usr/bin/caddy -plugins
+#RUN /usr/bin/caddy -version
+#RUN /usr/bin/caddy -plugins
 
 EXPOSE 80 443 2015
-RUN setcap 'cap_net_bind_service=+ep' /usr/bin/caddy
-#VOLUME /root/.caddy /srv
-#WORKDIR /caddy/www
 
 COPY Caddyfile /etc/Caddyfile
 

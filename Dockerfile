@@ -1,45 +1,40 @@
-#
-# Builder
-#
-
-FROM alpine AS builder
-
-ARG plugins="http.cache,http.filter,http.webdav,tls.dns.cloudflare"
-
-RUN apk --update add --no-cache bash ca-certificates gzip curl \
-    && curl https://getcaddy.com | bash -s personal ${plugins}
-
-#
-# Final stage
-#
 FROM alpine
-LABEL maintainer "Abiola Ibrahim <abiola89@gmail.com>"
 
-# Let's Encrypt Agreement
-ENV ACME_AGREE="false"
+RUN apk --update add --no-cache ca-certificates curl
 
-RUN apk --update add --no-cache \
-    ca-certificates \
-    git \
-    mailcap \
-    openssh-client \
-    tzdata \
-    libcap
+RUN set -eux; \
+	mkdir -p \
+		/etc/caddy \
+		/usr/share/caddy \
+	; \
+	curl -fsSLo /etc/caddy/Caddyfile "https://raw.githubusercontent.com/caddyserver/dist/master/config/Caddyfile"; \
+	curl -fsSLo /usr/share/caddy/index.html "https://raw.githubusercontent.com/caddyserver/dist/master/welcome/index.html"
 
-# install caddy
-COPY --from=builder /usr/local/bin/caddy /usr/bin/caddy
 
-# validate install
-RUN /usr/bin/caddy -version
-RUN /usr/bin/caddy -plugins
+RUN set -eux; \
+	apkArch="$(apk --print-arch)"; \
+	case "$apkArch" in \
+		x86_64)  binArch='amd64' ;; \
+		armhf)   binArch='armv6' ;; \
+		armv7)   binArch='armv7' ;; \
+		aarch64) binArch='arm64' ;; \
+		ppc64el|ppc64le) binArch='ppc64le' ;; \
+		s390x)   binArch='s390x' ;; \
+		*) echo >&2 "error: unsupported architecture ($apkArch)"; exit 1 ;;\
+	esac; \
+	curl -fsSLo /usr/bin/caddy "https://caddyserver.com/api/download?os=linux&arch=${binArch}&p=github.com%2Fcaddyserver%2Freplace-response&p=github.com%2Fcaddy-dns%2Fcloudflare&p=github.com%2Fmholt%2Fcaddy-webdav"; \
+	chmod +x /usr/bin/caddy; \
+	caddy version; \
+	caddy list-modules
+	
+# set up nsswitch.conf for Go's "netgo" implementation
+# - https://github.com/docker-library/golang/blob/1eb096131592bcbc90aa3b97471811c798a93573/1.14/alpine3.12/Dockerfile#L9
+RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
 
-EXPOSE 80 443 2015
-RUN setcap 'cap_net_bind_service=+ep' /usr/bin/caddy
-#VOLUME /root/.caddy /srv
-#WORKDIR /caddy/www
+HEALTHCHECK --start-period=2s --interval=5s --timeout=3s \
+  CMD curl -f http://localhost/health || exit 1
 
-COPY Caddyfile /etc/Caddyfile
-
+EXPOSE 80 443 2019
 
 ENTRYPOINT ["caddy"]
-CMD ["--conf", "/etc/Caddyfile", "--log", "stdout", "--agree=true", "-quic"]
+CMD ["run", "--config", "/root/.config/caddy/Caddyfile", "--adapter", "caddyfile"]
