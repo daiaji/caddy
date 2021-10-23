@@ -11,18 +11,7 @@ RUN set -eux; \
 	curl -fsSLo /usr/share/caddy/index.html "https://raw.githubusercontent.com/caddyserver/dist/master/welcome/index.html"
 
 
-RUN set -eux; \
-	apkArch="$(apk --print-arch)"; \
-	case "$apkArch" in \
-		x86_64)  binArch='amd64' ;; \
-		armhf)   binArch='armv6' ;; \
-		armv7)   binArch='armv7' ;; \
-		aarch64) binArch='arm64' ;; \
-		ppc64el|ppc64le) binArch='ppc64le' ;; \
-		s390x)   binArch='s390x' ;; \
-		*) echo >&2 "error: unsupported architecture ($apkArch)"; exit 1 ;;\
-	esac; \
-	curl -fsSLo /usr/bin/caddy "https://caddyserver.com/api/download?os=linux&arch=${binArch}&p=github.com%2Fcaddyserver%2Freplace-response&p=github.com%2Fcaddy-dns%2Fcloudflare&p=github.com%2Fmholt%2Fcaddy-webdav"; \
+COPY caddy /usr/bin/caddy
 	chmod +x /usr/bin/caddy; \
 	caddy version; \
 	caddy list-modules
