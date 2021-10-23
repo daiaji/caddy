@@ -1,3 +1,11 @@
+FROM caddy:2.4.5-builder-alpine AS builder
+
+RUN xcaddy build \
+    --with github.com/caddyserver/replace-response \
+    --with github.com/caddy-dns/cloudflare \
+		--with github.com/mholt/caddy-webdav \
+		--with github.com/dausruddin/replace-response
+
 FROM alpine
 
 RUN apk --update add --no-cache ca-certificates curl
@@ -10,18 +18,14 @@ RUN set -eux; \
 	curl -fsSLo /etc/caddy/Caddyfile "https://raw.githubusercontent.com/caddyserver/dist/master/config/Caddyfile"; \
 	curl -fsSLo /usr/share/caddy/index.html "https://raw.githubusercontent.com/caddyserver/dist/master/welcome/index.html"
 
-
-COPY caddy /usr/bin/caddy
-	chmod +x /usr/bin/caddy; \
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+RUN	chmod +x /usr/bin/caddy; \
 	caddy version; \
 	caddy list-modules
 	
 # set up nsswitch.conf for Go's "netgo" implementation
 # - https://github.com/docker-library/golang/blob/1eb096131592bcbc90aa3b97471811c798a93573/1.14/alpine3.12/Dockerfile#L9
 RUN [ ! -e /etc/nsswitch.conf ] && echo 'hosts: files dns' > /etc/nsswitch.conf
-
-HEALTHCHECK --start-period=2s --interval=5s --timeout=3s \
-  CMD curl -f http://localhost/health || exit 1
 
 EXPOSE 80 443 2019
 
