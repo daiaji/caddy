@@ -4,7 +4,7 @@ RUN xcaddy build \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/mholt/caddy-webdav \
     --with github.com/greenpau/caddy-security \
-    --with github.com/daiaji/replace-response
+    --with github.com/caddyserver/replace-response
 
 
 FROM alpine
