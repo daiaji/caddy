@@ -1,11 +1,7 @@
-FROM caddy:2.4.5-builder-alpine AS builder
+FROM caddy:builder-alpine AS builder
 
 RUN xcaddy build \
-    --with github.com/caddy-dns/cloudflare \
-    --with github.com/mholt/caddy-webdav \
-    --with github.com/greenpau/caddy-security \
-    --with github.com/caddyserver/replace-response
-
+    --with github.com/caddy-dns/cloudflare
 
 FROM alpine
 
